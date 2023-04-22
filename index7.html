@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+        <!-- Load d3.js -->
+<script src="https://d3js.org/d3.v6.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+<style>
+.line {
+  fill: none;
+  stroke: #007fd6;
+  stroke-width: 1px;
+}
+
+.node {
+  fill: #007fd6;
+  stroke: #fff;
+  stroke-width: 1px;
+  
+}
+
+.tooltip {
+        position: absolute;
+        text-align: center;
+        width: 60px;
+        height: 28px;
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 0px;
+        pointer-events: none;
+    }
+
+
+</style>
+
+
+
+<script>
+    callFunction ();
+    function callFunction() {
+    
+    var svgtest = d3.select("body").select("svg");
+    if (!svgtest.empty()){
+        svgtest.remove();
+    }
+</script>
+
+
+
+</head>
+
+<body onresize="callFunction()">
+<div id="graph"></div>
+</body>
+
+
+<script src="main.js" ></script>
+
+</html>
