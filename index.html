@@ -1,120 +1,240 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://unpkg.com/d3-svg-annotation@2.3.1/d3-annotation.min.js"></script>
+    <title>linechart</title>
+    <style>
+      body {
+        position: fixed;
+        left: 0px;
+        right: 0px;
+        top: 0px;
+        bottom: 0px;
+        margin: 0px;
+        font-family: sans-serif;
+      }
+      .domain {
+        display: none;
+      }
+      .tick line {
+        stroke: #ebebe9;
+      }
+      .tick text {
+        fill: #8E8883;
+        font-size: 12pt;
+      }
+      .axis-label {
+        fill: #635F5D;
+        font-size: 32pt;
+      }
+      .annotation-connector .connector {
+        stroke: black;
+      }
+      .annotation-note-content text {
+        fill: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const xValue = (d) => d.date;
+      const xLabel = 'Time';
+      const yValue = (d) => d.users;
+      const yLabel = 'VizHub Users';
+      const margin = {
+        left: 110,
+        right: 22,
+        top: 20,
+        bottom: 100,
+      };
 
+      const svg = d3.select('body').append('svg');
 
+      const g = svg
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${margin.left},${margin.top})`
+        );
+      const xAxisG = g.append('g');
+      const yAxisG = g.append('g');
 
-    <!-- Load d3.js -->
-<script src="https://d3js.org/d3.v6.js"></script>
+      const xAxisLabel = xAxisG
+        .append('text')
+        .attr('class', 'axis-label')
+        .attr('y', 75)
+        .text(xLabel);
 
+      const yAxisLabel = yAxisG
+        .append('text')
+        .attr('class', 'axis-label')
+        .attr('y', -70)
+        .attr('transform', `rotate(-90)`)
+        .style('text-anchor', 'middle')
+        .text(yLabel);
 
-</head>
-<body onresize="callFunction()">
-   <!-- Create a div where the graph will take place -->
-<div id="my_dataviz"></div>
- 
+      const xScale = d3.scaleTime();
+      const yScale = d3.scaleLinear();
 
+      const xAxis = d3
+        .axisBottom()
+        .scale(xScale)
+        .tickPadding(15)
+        .ticks(5);
 
+      const yAxis = d3
+        .axisLeft()
+        .scale(yScale)
+        .ticks(10)
+        .tickPadding(15);
 
-<script>
-callFunction ();
-function callFunction() {
+      const line = d3
+        .line()
+        .x((d) => xScale(xValue(d)))
+        .y((d) => yScale(yValue(d)));
 
-var svgtest = d3.select("body").select("svg");
-if (!svgtest.empty()){
-    svgtest.remove();
-}
+      const row = (d) => {
+        d.date = new Date(d.date);
+        d.users = +d.users;
+        return d;
+      };
 
+      const render = ({ data, width, height }) => {
+        svg.attr('width', width).attr('height', height);
+        const innerWidth =
+          width - margin.left - margin.right;
+        const innerHeight =
+          height - margin.top - margin.bottom;
 
-// set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = window.innerWidth - margin.left - margin.right,
-    height = window.innerHeight - margin.top - margin.bottom;
+        xAxisLabel.attr('x', innerWidth / 2);
 
-// append the svg object to the body of the page
-const svg = d3.select("#my_dataviz")
-.append("svg")
-  .attr("width", width + margin.left + margin.right)
-  .attr("height", height + margin.top + margin.bottom)
-.append("g")
-  .attr("transform", `translate(${margin.left},${margin.top})`);
+        yAxisLabel.attr('x', -innerHeight / 2);
 
-// Labels of row and columns
-const myGroups = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-const myVars = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"]
+        xScale
+          .domain(d3.extent(data, xValue))
+          .range([0, innerWidth])
+          .nice();
 
-// Build X scales and axis:
-const x = d3.scaleBand()
-  .range([ 0, width ])
-  .domain(myGroups)
-  .padding(0.01);
-svg.append("g")
-  .attr("transform", `translate(0, ${height})`)
-  .call(d3.axisBottom(x))
+        yScale
+          .domain(d3.extent(data, yValue))
+          .range([innerHeight, 0])
+          .nice();
 
-// Build X scales and axis:
-const y = d3.scaleBand()
-  .range([ height, 0 ])
-  .domain(myVars)
-  .padding(0.01);
-svg.append("g")
-  .call(d3.axisLeft(y));
+        const path = g.selectAll('.line').data([null]);
+        path
+          .enter()
+          .append('path')
+          .attr('class', 'line')
+          .attr('fill', 'none')
+          .attr('stroke', 'black')
+          .merge(path)
+          .attr('d', line(data));
 
-// Build color scale
-const myColor = d3.scaleLinear()
-  .range(["white", "#69b3a2"])
-  .domain([1,100])
+        const circles = g.selectAll('circle').data(data);
+        circles
+          .enter()
+          .append('circle')
+          .attr('r', 2)
+          .attr('cx', (d) => xScale(xValue(d)))
+          .attr('cy', (d) => yScale(yValue(d)))
+          .append('title')
+          .text(yValue);
 
-//Read the data
-d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/heatmap_data.csv").then( function(data) {
+        xAxisG
+          .attr('transform', `translate(0, ${innerHeight})`)
+          .call(xAxis.tickSize(-innerHeight));
 
-  // create a tooltip
-  const tooltip = d3.select("#my_dataviz")
-    .append("div")
-    .style("opacity", 0)
-    .attr("class", "tooltip")
-    .style('position', 'absolute')
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "2px")
-    .style("border-radius", "0px")
-    .style("padding", "2px")
+        yAxisG.call(yAxis.tickSize(-innerWidth));
 
-  // Three function that change the tooltip when user hover / move / leave a cell
-  const mouseover = function(event,d) {
-    tooltip.style("opacity", 1)
-  }
-  const mousemove = function(event,d) {
-    tooltip
-      .html("The time to load is: " + d.value)
-      .style("left", (event.x)/2 + "px")
-      .style("top", (event.y)/2 + "px")
-  }
-  const mouseleave = function(d) {
-    tooltip.style("opacity", 0)
-  }
+        const annotations = [
+          {
+            note: {
+              label: 'Medium post triggered growth',
+              bgPadding: 20,
+              title: 'VizHub 1.0',
+            },
+            x: xScale(new Date('10/10/2018')),
+            y: yScale(78),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              bgPadding: 20,
+              title: 'VizHub 2.0 Kickstarter',
+            },
+            x: xScale(new Date('7/4/2019')),
+            y: yScale(619),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              label: 'Notable uptick',
+              bgPadding: 20,
+              title: 'Datavis 2020 Launch',
+            },
+            x: xScale(new Date('1/1/2020')),
+            y: yScale(2052),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              bgPadding: 20,
+              title: 'Sort by Popular Launched',
+            },
+            x: xScale(new Date('1/22/2021')),
+            y: yScale(6049),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              label: 'livestream series started',
+              bgPadding: 20,
+              title: 'Get it Right in Black & White',
+            },
+            x: xScale(new Date('3/13/2021')),
+            y: yScale(7029),
+            className: 'annotation',
+            dy: 70,
+            dx: 0,
+          },
+        ];
+        const annotationsG = g
+          .selectAll('.annotations')
+          .data([null]);
+        annotationsG
+          .enter()
+          .append('g')
+          .attr('class', 'annotations')
+          .merge(annotationsG)
+          .call(
+            d3
+              .annotation()
+              .type(d3.annotationLabel)
+              .annotations(annotations)
+          );
+      };
 
-  // add the squares
-  svg.selectAll()
-    .data(data, function(d) {return d.group+':'+d.variable;})
-    .enter()
-    .append("rect")
-      .attr("x", function(d) { return x(d.group) })
-      .attr("y", function(d) { return y(d.variable) })
-      .attr("width", x.bandwidth() )
-      .attr("height", y.bandwidth() )
-      .style("fill", function(d) { return myColor(d.value)} )
-    .on("mouseover", mouseover)
-    .on("mousemove", mousemove)
-    .on("mouseleave", mouseleave)
-})
-}
-</script>
-
-
-</body>
+      d3.csv('users.csv', row, (data) => {
+        const update = () => {
+          render({
+            data,
+            width: document.body.clientWidth,
+            height: document.body.clientHeight,
+          });
+        };
+        update();
+        window.addEventListener('resize', update);
+      });
+    </script>
+  </body>
 </html>
