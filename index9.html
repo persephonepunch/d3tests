@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
     <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="bundle.js"></script>
     <script src="https://unpkg.com/d3-svg-annotation@2.3.1/d3-annotation.min.js"></script>
     <title>VizHub Cumulative Unique Logins</title>
     <style>
@@ -44,7 +43,7 @@
       const xValue = (d) => d.date;
       const xLabel = 'Time';
       const yValue = (d) => d.users;
-      const yLabel = 'Daily Load Times;
+      const yLabel = 'VizHub Users';
       const margin = {
         left: 110,
         right: 22,
@@ -189,7 +188,7 @@
           {
             note: {
               bgPadding: 20,
-              title: 'Time to Load',
+              title: 'Sort by Popular Launched',
             },
             x: xScale(new Date('1/22/2021')),
             y: yScale(6049),
