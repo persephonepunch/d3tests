@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="bundle.js"></script>
+    <script src="https://unpkg.com/d3-svg-annotation@2.3.1/d3-annotation.min.js"></script>
+    <title>VizHub Cumulative Unique Logins</title>
+    <style>
+      body {
+        position: fixed;
+        left: 0px;
+        right: 0px;
+        top: 0px;
+        bottom: 0px;
+        margin: 0px;
+        font-family: sans-serif;
+      }
+      .domain {
+        display: none;
+      }
+      .tick line {
+        stroke: #ebebe9;
+      }
+      .tick text {
+        fill: #8E8883;
+        font-size: 12pt;
+      }
+      .axis-label {
+        fill: #635F5D;
+        font-size: 32pt;
+      }
+      .annotation-connector .connector {
+        stroke: black;
+      }
+      .annotation-note-content text {
+        fill: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const xValue = (d) => d.date;
+      const xLabel = 'Time';
+      const yValue = (d) => d.users;
+      const yLabel = 'Daily Load Times;
+      const margin = {
+        left: 110,
+        right: 22,
+        top: 20,
+        bottom: 100,
+      };
+
+      const svg = d3.select('body').append('svg');
+
+      const g = svg
+        .append('g')
+        .attr(
+          'transform',
+          `translate(${margin.left},${margin.top})`
+        );
+      const xAxisG = g.append('g');
+      const yAxisG = g.append('g');
+
+      const xAxisLabel = xAxisG
+        .append('text')
+        .attr('class', 'axis-label')
+        .attr('y', 75)
+        .text(xLabel);
+
+      const yAxisLabel = yAxisG
+        .append('text')
+        .attr('class', 'axis-label')
+        .attr('y', -70)
+        .attr('transform', `rotate(-90)`)
+        .style('text-anchor', 'middle')
+        .text(yLabel);
+
+      const xScale = d3.scaleTime();
+      const yScale = d3.scaleLinear();
+
+      const xAxis = d3
+        .axisBottom()
+        .scale(xScale)
+        .tickPadding(15)
+        .ticks(5);
+
+      const yAxis = d3
+        .axisLeft()
+        .scale(yScale)
+        .ticks(10)
+        .tickPadding(15);
+
+      const line = d3
+        .line()
+        .x((d) => xScale(xValue(d)))
+        .y((d) => yScale(yValue(d)));
+
+      const row = (d) => {
+        d.date = new Date(d.date);
+        d.users = +d.users;
+        return d;
+      };
+
+      const render = ({ data, width, height }) => {
+        svg.attr('width', width).attr('height', height);
+        const innerWidth =
+          width - margin.left - margin.right;
+        const innerHeight =
+          height - margin.top - margin.bottom;
+
+        xAxisLabel.attr('x', innerWidth / 2);
+
+        yAxisLabel.attr('x', -innerHeight / 2);
+
+        xScale
+          .domain(d3.extent(data, xValue))
+          .range([0, innerWidth])
+          .nice();
+
+        yScale
+          .domain(d3.extent(data, yValue))
+          .range([innerHeight, 0])
+          .nice();
+
+        const path = g.selectAll('.line').data([null]);
+        path
+          .enter()
+          .append('path')
+          .attr('class', 'line')
+          .attr('fill', 'none')
+          .attr('stroke', 'black')
+          .merge(path)
+          .attr('d', line(data));
+
+        const circles = g.selectAll('circle').data(data);
+        circles
+          .enter()
+          .append('circle')
+          .attr('r', 2)
+          .attr('cx', (d) => xScale(xValue(d)))
+          .attr('cy', (d) => yScale(yValue(d)))
+          .append('title')
+          .text(yValue);
+
+        xAxisG
+          .attr('transform', `translate(0, ${innerHeight})`)
+          .call(xAxis.tickSize(-innerHeight));
+
+        yAxisG.call(yAxis.tickSize(-innerWidth));
+
+        const annotations = [
+          {
+            note: {
+              label: 'Load Time',
+              bgPadding: 20,
+              title: '03/21/2023',
+            },
+            x: xScale(new Date('03/21/2023')),
+            y: yScale(78),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              bgPadding: 20,
+              title: 'Load Time',
+            },
+            x: xScale(new Date('03/22/2023')),
+            y: yScale(619),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              label: 'Notes',
+              bgPadding: 20,
+              title: '03/24/2023',
+            },
+            x: xScale(new Date('Load Time')),
+            y: yScale(2052),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              bgPadding: 20,
+              title: 'Time to Load',
+            },
+            x: xScale(new Date('04/01/2023')),
+            y: yScale(6049),
+            className: 'annotation',
+            dy: -70,
+            dx: 0,
+          },
+          {
+            note: {
+              label: 'Note',
+              bgPadding: 20,
+              title: '04/02/2023',
+            },
+            x: xScale(new Date('Note')),
+            y: yScale(7029),
+            className: 'annotation',
+            dy: 70,
+            dx: 0,
+          },
+        ];
+        const annotationsG = g
+          .selectAll('.annotations')
+          .data([null]);
+        annotationsG
+          .enter()
+          .append('g')
+          .attr('class', 'annotations')
+          .merge(annotationsG)
+          .call(
+            d3
+              .annotation()
+              .type(d3.annotationLabel)
+              .annotations(annotations)
+          );
+      };
+
+      d3.csv('users.csv', row, (data) => {
+        const update = () => {
+          render({
+            data,
+            width: document.body.clientWidth,
+            height: document.body.clientHeight,
+          });
+        };
+        update();
+        window.addEventListener('resize', update);
+      });
+    </script>
+  </body>
+</html>
